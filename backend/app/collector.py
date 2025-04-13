@@ -15,7 +15,7 @@ def flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def fetch_stock_data(symbol: str, start: str, end: str) -> pd.DataFrame:
-    df = yf.download(symbol, start=start, end=end)
+    df = yf.download(symbol, start=start, end=end, repair=True)
     df.reset_index(inplace=True)
 
     # Flatten columns if MultiIndex

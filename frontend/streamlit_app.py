@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import requests
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
@@ -10,6 +11,50 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 
 # MySQL 연결
 engine = create_engine(DATABASE_URL)
+
+st.set_page_config(page_title="📡 주식 수집 API 연동", layout="wide")
+st.title("📡 주식 수집 + 시각화 (FastAPI 연동)")
+
+# 수집 섹션
+with st.form(key="collect_form"):
+    symbol = st.text_input("종목 코드 (예: AAPL)")
+    col1, col2 = st.columns(2)
+    with col1:
+        start = st.date_input("시작일")
+    with col2:
+        end = st.date_input("종료일")
+    submit = st.form_submit_button("📡 FastAPI로 수집 요청")
+    
+if submit and symbol:
+    with st.spinner("FastAPI로 수집 요청 중..."):
+        url = f"http://localhost:8000/collect/{symbol}"
+        params = {"start": str(start), "end": str(end)}
+        
+        try:
+            res = requests.post(url, params=params, timeout=20)
+            if res.status_code == 200:
+                st.success(f"{symbol} 수집 완료: {res.json().get('rows')}건")
+            else:
+                st.error(f"수집 실패: {res.status_code} / {res.text}")
+        
+        except requests.exceptions.RequestException as e:
+            st.error(f"요청 중 오류 발생: {e}")
+            
+# 조회 섹션
+with st.sidebar:
+    st.header("🗂 저장된 종목 보기")
+    symbols = pd.read_sql("SELECT DISTINCT symbol FROM stock_prices", engine)
+    selected_symbol = st.selectbox("조회할 종목", symbols["symbol"] if not symbols.empty else [])
+    
+if selected_symbol:
+    df = pd.read_sql(
+        "SELECT symbol, date, open, high, low, close, volume FROM stock_prices WHERE symbol = %s ORDER BY date DESC",
+        engine,
+        params=(selected_symbol,)
+    )
+    st.subheader(f"{selected_symbol} 시세 데이터")
+    st.dataframe(df, use_container_width=True)
+    st.line_chart(df.sort_values("date")[["date", "close"]].set_index("date"))
 
 # 종목 목록 가져오기
 @st.cache_data
