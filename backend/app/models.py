@@ -1,5 +1,5 @@
 """SQLAlchemy 모델 정의"""
-from sqlalchemy import Column, String, Date, Float, BigInteger, Integer
+from sqlalchemy import Column, String, Date, Float, BigInteger, Boolean
 from .database import Base
 
 class StockPrice(Base):
@@ -31,3 +31,13 @@ class TechnicalIndicator(Base):
     date = Column(Date, nullable=False)
     indicator_name = Column(String(50), nullable=False)
     value = Column(Float)
+    
+class stock_tickers(Base):
+    __tablename__ = "stock_tickers"
+    
+    symbol = Column(String(10), primary_key=True)
+    name =  Column(String(100))
+    exchange = Column(String(10))
+    is_etf = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
+    last_updated = Column(Date)
