@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.collector import fetch_stock_data
 from app.crud import insert_data
+from app.ticker_updater import update_stock_tickers
 
 app = FastAPI()
 
@@ -20,3 +21,11 @@ def collect(symbol: str, start: str = Query(...), end: str = Query(...), db: Ses
     row_count = insert_data(df, db)
     
     return {"message": f"{symbol} 수집 완료", "rows": row_count}
+
+@app.post("/update-tickers")
+def update_tickers():
+    try:
+        update_stock_tickers()
+        return {"message": "Ticker list updated successfully"}
+    except Exception as e:
+        return {"error": str(e)}
