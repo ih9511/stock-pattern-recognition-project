@@ -55,6 +55,20 @@ if selected_symbol:
     st.subheader(f"{selected_symbol} 시세 데이터")
     st.dataframe(df, use_container_width=True)
     st.line_chart(df.sort_values("date")[["date", "close"]].set_index("date"))
+    
+with st.sidebar:
+    st.markdown("### 🔄 NASDAQ 티커 갱신")
+    
+    if st.button("🆕 종목 티커 갱신"):
+        with st.spinner("FastAPI를 통해 NASDAQ 티커 갱신 중..."):
+            try:
+                res = requests.post("http://localhost:8000/update-tickers", timeout=20)
+                if res.status_code == 200:
+                    st.success("티커 목록 갱신 완료!")
+                else:
+                    st.error(f"갱신 실패: {res.status_code} / {res.text}")
+            except requests.exceptions.RequestException as e:
+                st.error(f"요청 중 오류 발생: {e}")
 
 # 종목 목록 가져오기
 @st.cache_data
@@ -89,3 +103,4 @@ else:
 
     st.subheader(f"{selected_symbol} 데이터 미리보기")
     st.dataframe(df, use_container_width=True)
+    
