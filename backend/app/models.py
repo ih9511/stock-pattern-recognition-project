@@ -32,7 +32,7 @@ class TechnicalIndicator(Base):
     indicator_name = Column(String(50), nullable=False)
     value = Column(Float)
     
-class stock_tickers(Base):
+class StockTicker(Base):
     __tablename__ = "stock_tickers"
     
     symbol = Column(String(10), primary_key=True)
